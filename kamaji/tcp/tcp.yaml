@@ -10,7 +10,7 @@ spec:
     service:
       serviceType: NodePort
       port: 6443
-      nodePort: 30443   # must be between 30000–32767
+      nodePort: 30443
 
   kubernetes:
     version: v1.26.1
