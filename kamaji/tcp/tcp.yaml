@@ -14,7 +14,7 @@ spec:
     version: v1.26.1
 
   networkProfile:
-    port: 64431
+    port: 30443
     serviceCIDR: 10.96.0.0/12
     podCIDR: 10.244.0.0/16
     dnsServiceIPs:
