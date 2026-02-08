@@ -1,58 +1,6 @@
 apiVersion: kamaji.clastix.io/v1alpha1
 kind: TenantControlPlane
 metadata:
-  name: tenant1
-  namespace: tenant-clusters
-spec:
-  controlPlane:
-    deployment:
-      replicas: 3
-    service:
-      serviceType: NodePort
-      port: 6443
-      nodePort: 30443
-
-  kubernetes:
-    version: v1.26.1
-
-  networkProfile:
-    serviceCIDR: 10.96.0.0/12
-    podCIDR: 10.244.0.0/16
-    dnsServiceIPs:
-      - 10.96.0.10
-
-
----
-
-apiVersion: kamaji.clastix.io/v1alpha1
-kind: TenantControlPlane
-metadata:
-  name: tenant2
-  namespace: tenant-clusters
-spec:
-  controlPlane:
-    deployment:
-      replicas: 3
-    service:
-      serviceType: NodePort
-      port: 6443
-      nodePort: 31443   # use a different port than tenant1
-
-  kubernetes:
-    version: v1.26.1
-
-  networkProfile:
-    port: 6443
-    serviceCIDR: 10.97.0.0/16     # different from tenant1
-    podCIDR: 10.245.0.0/16        # different from tenant1
-    dnsServiceIPs:
-      - 10.97.0.10
-
----
-
-apiVersion: kamaji.clastix.io/v1alpha1
-kind: TenantControlPlane
-metadata:
   name: tenant3
   namespace: tenant-clusters
 spec:
