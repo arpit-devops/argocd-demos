@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: online-shop-service
 spec:
+  type: NodePort
   selector:
     app: online-shop
   ports:
