@@ -11,7 +11,7 @@ spec:
       serviceType: NodePort
 
   kubernetes:
-    version: v1.29.2
+    version: v1.26.1
 
   networkProfile:
     port: 6443

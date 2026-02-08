@@ -4,7 +4,7 @@ metadata:
   name: kamaji
   namespace: argocd
 spec:
-  description: Project for Kamaji control plane and tenant clusters
+  description: Kamaji control plane and tenant clusters
 
   sourceRepos:
     - '*'
@@ -14,6 +14,8 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: tenant-clusters
       server: https://kubernetes.default.svc
+    - namespace: argocd
+      server: https://kubernetes.default.svc   # add this
 
   clusterResourceWhitelist:
     - group: '*'
