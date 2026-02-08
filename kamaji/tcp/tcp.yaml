@@ -9,12 +9,13 @@ spec:
       replicas: 3
     service:
       serviceType: NodePort
+      port: 6443
+      nodePort: 30443   # must be between 30000–32767
 
   kubernetes:
     version: v1.26.1
 
   networkProfile:
-    port: 30443
     serviceCIDR: 10.96.0.0/12
     podCIDR: 10.244.0.0/16
     dnsServiceIPs:
