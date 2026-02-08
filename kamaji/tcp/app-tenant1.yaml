@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tenant1
+  namespace: argocd
+spec:
+  project: kamaji
+  source:
+    repoURL: https://github.com/arpit-devops/argocd-demos.git
+    targetRevision: main
+    path: kamaji/tcp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tenant-clusters
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

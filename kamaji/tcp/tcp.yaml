@@ -1,0 +1,21 @@
+apiVersion: kamaji.clastix.io/v1alpha1
+kind: TenantControlPlane
+metadata:
+  name: tenant1
+  namespace: tenant-clusters
+spec:
+  controlPlane:
+    deployment:
+      replicas: 3
+    service:
+      serviceType: NodePort
+
+  kubernetes:
+    version: v1.29.2
+
+  networkProfile:
+    port: 6443
+    serviceCIDR: 10.96.0.0/12
+    podCIDR: 10.244.0.0/16
+    dnsServiceIPs:
+      - 10.96.0.10
