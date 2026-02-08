@@ -48,3 +48,26 @@ spec:
     dnsServiceIPs:
       - 10.97.0.10
 
+---
+
+apiVersion: kamaji.clastix.io/v1alpha1
+kind: TenantControlPlane
+metadata:
+  name: tenant3
+  namespace: tenant-clusters
+spec:
+  controlPlane:
+    deployment:
+      replicas: 3
+    service:
+      serviceType: ClusterIP
+      port: 6443
+
+  kubernetes:
+    version: v1.26.1
+
+  networkProfile:
+    serviceCIDR: 10.96.0.0/16
+    podCIDR: 10.244.0.0/16
+    dnsServiceIPs:
+      - 10.96.0.10
