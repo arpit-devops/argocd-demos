@@ -43,3 +43,41 @@ data:
     
     # 12. Process CPU Time
     sum(rate(process_cpu_seconds_total{job="tenant3-apiserver"}[5m])) by (pod)
+    
+    # === DATASTORE LATENCY METRICS ===
+    
+    # 13. Etcd Request Duration (p95) - API Server to Datastore Latency
+    histogram_quantile(0.95, sum(rate(etcd_request_duration_seconds_bucket{job="tenant3-apiserver"}[5m])) by (operation, type, le))
+    
+    # 14. Etcd Request Duration (p99) - API Server to Datastore Latency
+    histogram_quantile(0.99, sum(rate(etcd_request_duration_seconds_bucket{job="tenant3-apiserver"}[5m])) by (operation, type, le))
+    
+    # 15. Etcd Request Duration Average
+    rate(etcd_request_duration_seconds_sum{job="tenant3-apiserver"}[5m]) / rate(etcd_request_duration_seconds_count{job="tenant3-apiserver"}[5m])
+    
+    # 16. API Server Storage Operations Duration (p95) - Roundtrip Latency
+    histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver"}[5m])) by (operation, resource, le))
+    
+    # 17. API Server Storage Operations Duration (p99) - Roundtrip Latency
+    histogram_quantile(0.99, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver"}[5m])) by (operation, resource, le))
+    
+    # 18. Etcd Request Rate by Operation
+    sum(rate(etcd_request_duration_seconds_count{job="tenant3-apiserver"}[5m])) by (operation, type)
+    
+    # 19. API Server to Datastore Roundtrip Time (GET operations)
+    histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver",operation="get"}[5m])) by (resource, le))
+    
+    # 20. API Server to Datastore Roundtrip Time (LIST operations)
+    histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver",operation="list"}[5m])) by (resource, le))
+    
+    # 21. API Server to Datastore Roundtrip Time (CREATE operations)
+    histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver",operation="create"}[5m])) by (resource, le))
+    
+    # 22. API Server to Datastore Roundtrip Time (UPDATE operations)
+    histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job="tenant3-apiserver",operation="update"}[5m])) by (resource, le))
+    
+    # 23. Etcd Network Latency (if available)
+    histogram_quantile(0.95, sum(rate(etcd_network_peer_round_trip_time_seconds_bucket{job="tenant3-apiserver"}[5m])) by (le))
+    
+    # 24. Storage Operation Errors
+    sum(rate(apiserver_storage_operation_errors_total{job="tenant3-apiserver"}[5m])) by (operation, resource)

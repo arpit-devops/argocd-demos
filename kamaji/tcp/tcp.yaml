@@ -20,6 +20,20 @@ spec:
           limits:
             cpu: 1000m
             memory: 1Gi
+        controllerManager:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        scheduler:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
     service:
       serviceType: ClusterIP
       port: 6443
