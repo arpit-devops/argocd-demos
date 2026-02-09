@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apiserver-load-test
+  namespace: tenant-clusters
+spec:
+  parallelism: 5
+  completions: 5
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: load-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: load-generator
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              
+              echo "Starting API server load test..."
+              echo "Target: tenant3 API server"
+              
+              # Get the service endpoint
+              API_SERVER="tenant3.tenant-clusters.svc.cluster.local:6443"
+              
+              # Generate continuous load for 10 minutes
+              END_TIME=$(($(date +%s) + 600))
+              
+              while [ $(date +%s) -lt $END_TIME ]; do
+                # List operations (high frequency)
+                for i in {1..20}; do
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
+                    get nodes --request-timeout=2s 2>/dev/null || true
+                  
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
+                    get pods -A --request-timeout=2s 2>/dev/null || true
+                  
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
+                    get services -A --request-timeout=2s 2>/dev/null || true
+                  
+                  sleep 0.1
+                done
+                
+                echo "Load test running... $(date)"
+                sleep 5
+              done
+              
+              echo "Load test completed!"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

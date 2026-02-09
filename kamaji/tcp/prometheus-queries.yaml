@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tenant3-prometheus-queries
+  namespace: tenant-clusters
+data:
+  queries.txt: |
+    # Prometheus Queries for Kamaji TCP Control Plane Monitoring
+    # Use these queries in Prometheus/Grafana to visualize autoscaling
+    
+    # 1. API Server Request Rate (requests per second)
+    sum(rate(apiserver_request_total{job="tenant3-apiserver"}[5m])) by (verb, resource)
+    
+    # 2. API Server Request Duration (95th percentile)
+    histogram_quantile(0.95, sum(rate(apiserver_request_duration_seconds_bucket{job="tenant3-apiserver"}[5m])) by (verb, le))
+    
+    # 3. Current Inflight Requests
+    sum(apiserver_current_inflight_requests{job="tenant3-apiserver"}) by (request_kind)
+    
+    # 4. CPU Usage per Pod
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-clusters",pod=~"tenant3-.*"}[5m])) by (pod)
+    
+    # 5. Memory Usage per Pod
+    sum(container_memory_working_set_bytes{namespace="tenant-clusters",pod=~"tenant3-.*"}) by (pod)
+    
+    # 6. Number of Running Pods (for visualizing scale events)
+    count(kube_pod_status_phase{namespace="tenant-clusters",pod=~"tenant3-.*",phase="Running"})
+    
+    # 7. HPA Current Replicas
+    kube_horizontalpodautoscaler_status_current_replicas{namespace="tenant-clusters",horizontalpodautoscaler="tenant3-apiserver-hpa"}
+    
+    # 8. HPA Desired Replicas
+    kube_horizontalpodautoscaler_status_desired_replicas{namespace="tenant-clusters",horizontalpodautoscaler="tenant3-apiserver-hpa"}
+    
+    # 9. CPU Utilization Percentage (for HPA trigger)
+    sum(rate(container_cpu_usage_seconds_total{namespace="tenant-clusters",pod=~"tenant3-.*"}[5m])) / sum(kube_pod_container_resource_requests{namespace="tenant-clusters",pod=~"tenant3-.*",resource="cpu"}) * 100
+    
+    # 10. Memory Utilization Percentage (for HPA trigger)
+    sum(container_memory_working_set_bytes{namespace="tenant-clusters",pod=~"tenant3-.*"}) / sum(kube_pod_container_resource_requests{namespace="tenant-clusters",pod=~"tenant3-.*",resource="memory"}) * 100
+    
+    # 11. Go Routines (API server health indicator)
+    sum(go_goroutines{job="tenant3-apiserver"}) by (pod)
+    
+    # 12. Process CPU Time
+    sum(rate(process_cpu_seconds_total{job="tenant3-apiserver"}[5m])) by (pod)

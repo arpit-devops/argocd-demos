@@ -1,0 +1,95 @@
+{
+  "dashboard": {
+    "title": "Kamaji TCP Control Plane - Autoscaling Visualization",
+    "tags": ["kamaji", "kubernetes", "autoscaling"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Control Plane Replicas (Current vs Desired)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"tenant-clusters\",horizontalpodautoscaler=\"tenant3-apiserver-hpa\"}",
+            "legendFormat": "Current Replicas"
+          },
+          {
+            "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"tenant-clusters\",horizontalpodautoscaler=\"tenant3-apiserver-hpa\"}",
+            "legendFormat": "Desired Replicas"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+      },
+      {
+        "id": 2,
+        "title": "API Server Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(apiserver_request_total{job=\"tenant3-apiserver\"}[5m]))",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+      },
+      {
+        "id": 3,
+        "title": "CPU Utilization (%)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"tenant-clusters\",pod=~\"tenant3-.*\"}[5m])) / sum(kube_pod_container_resource_requests{namespace=\"tenant-clusters\",pod=~\"tenant3-.*\",resource=\"cpu\"}) * 100",
+            "legendFormat": "CPU Utilization %"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [60], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "title": "Memory Utilization (%)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(container_memory_working_set_bytes{namespace=\"tenant-clusters\",pod=~\"tenant3-.*\"}) / sum(kube_pod_container_resource_requests{namespace=\"tenant-clusters\",pod=~\"tenant3-.*\",resource=\"memory\"}) * 100",
+            "legendFormat": "Memory Utilization %"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}
+      },
+      {
+        "id": 5,
+        "title": "Inflight Requests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(apiserver_current_inflight_requests{job=\"tenant3-apiserver\"}) by (request_kind)",
+            "legendFormat": "{{request_kind}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8}
+      },
+      {
+        "id": 6,
+        "title": "API Server Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_request_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (verb, le))",
+            "legendFormat": "{{verb}} - p95"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8}
+      }
+    ],
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"}
+  }
+}

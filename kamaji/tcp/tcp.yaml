@@ -3,13 +3,30 @@ kind: TenantControlPlane
 metadata:
   name: tenant3
   namespace: tenant-clusters
+  labels:
+    app: tenant3-control-plane
 spec:
   controlPlane:
     deployment:
       replicas: 3
+      extraArgs:
+        apiServer:
+          - --profiling=true
+      resources:
+        apiServer:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
     service:
       serviceType: ClusterIP
       port: 6443
+      additionalMetadata:
+        labels:
+          app: tenant3-control-plane
+          monitoring: enabled
 
   kubernetes:
     version: v1.26.1
