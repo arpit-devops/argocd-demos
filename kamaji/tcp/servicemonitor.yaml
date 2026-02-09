@@ -19,5 +19,5 @@ spec:
         insecureSkipVerify: true
       metricRelabelings:
         - sourceLabels: [__name__]
-          regex: 'apiserver_request_total|apiserver_request_duration_seconds.*|apiserver_current_inflight_requests|process_cpu_seconds_total|process_resident_memory_bytes|go_goroutines'
+          regex: 'apiserver_request_total|apiserver_request_duration_seconds.*|apiserver_current_inflight_requests|process_cpu_seconds_total|process_resident_memory_bytes|go_goroutines|etcd_request_duration_seconds.*|apiserver_storage_.*|kine_.*'
           action: keep

@@ -4,8 +4,8 @@ metadata:
   name: apiserver-load-test
   namespace: tenant-clusters
 spec:
-  parallelism: 15
-  completions: 15
+  parallelism: 5
+  completions: 5
   backoffLimit: 0
   template:
     metadata:
@@ -22,7 +22,7 @@ spec:
             - |
               set -e
               
-              echo "Starting INTENSIVE API server load test..."
+              echo "Starting CONTROLLED API server load test..."
               echo "Target: tenant3 API server"
               echo "Pod: $HOSTNAME"
               
@@ -30,47 +30,46 @@ spec:
               API_SERVER="tenant3.tenant-clusters.svc.cluster.local:6443"
               TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
               
-              # Generate continuous HEAVY load for 10 minutes
+              # Generate controlled load for 10 minutes
               END_TIME=$(($(date +%s) + 600))
+              COUNTER=0
               
               while [ $(date +%s) -lt $END_TIME ]; do
-                # Parallel background requests - controlled batches to avoid OOM
-                for batch in {1..10}; do
-                  for i in {1..10}; do
-                    (
-                      kubectl --server=https://${API_SERVER} \
-                        --insecure-skip-tls-verify \
-                        --token=$TOKEN \
-                        get nodes --request-timeout=3s 2>/dev/null || true
-                    ) &
-                    
-                    (
-                      kubectl --server=https://${API_SERVER} \
-                        --insecure-skip-tls-verify \
-                        --token=$TOKEN \
-                        get pods -A --request-timeout=3s 2>/dev/null || true
-                    ) &
-                    
-                    (
-                      kubectl --server=https://${API_SERVER} \
-                        --insecure-skip-tls-verify \
-                        --token=$TOKEN \
-                        get services -A --request-timeout=3s 2>/dev/null || true
-                    ) &
-                  done
+                # Sequential requests with small parallel batches
+                for i in {1..5}; do
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$TOKEN \
+                    get nodes --request-timeout=2s 2>/dev/null || true &
                   
-                  # Wait for this batch to complete before starting next
-                  wait
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$TOKEN \
+                    get pods -A --request-timeout=2s 2>/dev/null || true &
+                  
+                  kubectl --server=https://${API_SERVER} \
+                    --insecure-skip-tls-verify \
+                    --token=$TOKEN \
+                    get services -A --request-timeout=2s 2>/dev/null || true &
                 done
                 
-                echo "[$HOSTNAME] Load test running... $(date) - 10 batches completed"
+                # Wait for batch to complete
+                wait
+                
+                COUNTER=$((COUNTER + 1))
+                if [ $((COUNTER % 20)) -eq 0 ]; then
+                  echo "[$HOSTNAME] Load test running... $(date) - Completed $COUNTER batches"
+                fi
+                
+                # Small delay to prevent overwhelming
+                sleep 0.5
               done
               
-              echo "[$HOSTNAME] Load test completed!"
+              echo "[$HOSTNAME] Load test completed! Total batches: $COUNTER"
           resources:
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              cpu: 1000m
-              memory: 512Mi
+              cpu: 500m
+              memory: 256Mi
