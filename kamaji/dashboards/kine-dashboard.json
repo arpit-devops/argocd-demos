@@ -1,0 +1,286 @@
+{
+  "dashboard": {
+    "title": "Kamaji TCP - Kine Datastore Performance",
+    "tags": ["kamaji", "kine", "datastore", "sqlite", "postgres", "mysql"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Kine SQL Query Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kine_sql_query_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, le))",
+            "legendFormat": "{{operation}} - p95"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Query Latency"
+          }
+        ],
+        "tooltip": {
+          "shared": true,
+          "sort": 2
+        }
+      },
+      {
+        "id": 2,
+        "title": "Kine SQL Query Latency (p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(kine_sql_query_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, le))",
+            "legendFormat": "{{operation}} - p99"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Query Latency"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ],
+          "name": "High Kine Query Latency"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Kine Connection Pool Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kine_sql_connections_in_use{job=\"tenant3-apiserver\"}",
+            "legendFormat": "Connections In Use"
+          },
+          {
+            "expr": "kine_sql_connections_idle{job=\"tenant3-apiserver\"}",
+            "legendFormat": "Idle Connections"
+          },
+          {
+            "expr": "kine_sql_connections_max{job=\"tenant3-apiserver\"}",
+            "legendFormat": "Max Connections"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 9, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "Connections"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Kine Query Rate by Operation",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(kine_sql_query_duration_seconds_count{job=\"tenant3-apiserver\"}[5m])) by (operation)",
+            "legendFormat": "{{operation}}"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 9, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Queries/sec"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Kine Transaction Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kine_sql_transaction_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (le))",
+            "legendFormat": "Transaction - p95"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 17, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Transaction Time"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Kine Database Size (if available)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "kine_database_size_bytes{job=\"tenant3-apiserver\"}",
+            "legendFormat": "Database Size"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 17, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "bytes",
+            "label": "Size"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Kine Query Errors",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(kine_sql_query_errors_total{job=\"tenant3-apiserver\"}[5m])) by (operation, error_type)",
+            "legendFormat": "{{operation}}/{{error_type}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 25, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Errors/sec"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ],
+          "name": "Kine Query Errors"
+        }
+      },
+      {
+        "id": 8,
+        "title": "Kine Backend Type",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "kine_backend_type{job=\"tenant3-apiserver\"}",
+            "legendFormat": "Backend"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 25, "w": 6, "h": 4},
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+      {
+        "id": 9,
+        "title": "Average Query Latency",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(rate(kine_sql_query_duration_seconds_sum{job=\"tenant3-apiserver\"}[5m]) / rate(kine_sql_query_duration_seconds_count{job=\"tenant3-apiserver\"}[5m]))",
+            "legendFormat": "Avg Latency"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 25, "w": 6, "h": 4},
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "unit": "s"
+        },
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {"value": 0, "color": "green"},
+            {"value": 0.05, "color": "yellow"},
+            {"value": 0.1, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "title": "Total Queries/sec",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(kine_sql_query_duration_seconds_count{job=\"tenant3-apiserver\"}[5m]))",
+            "legendFormat": "Total Queries"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 29, "w": 6, "h": 4},
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "unit": "ops"
+        }
+      },
+      {
+        "id": 11,
+        "title": "Connection Wait Time (p95)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(kine_sql_connection_wait_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (le))",
+            "legendFormat": "Wait Time"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 29, "w": 6, "h": 4},
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "unit": "s"
+        },
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {"value": 0, "color": "green"},
+            {"value": 0.01, "color": "yellow"},
+            {"value": 0.05, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 12,
+        "title": "Storage Backend Roundtrip (via API Server metrics)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, le))",
+            "legendFormat": "{{operation}} - p95"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 33, "w": 24, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Roundtrip Time"
+          }
+        ],
+        "tooltip": {
+          "shared": true,
+          "sort": 2
+        }
+      }
+    ],
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"},
+    "annotations": {
+      "list": [
+        {
+          "name": "Note",
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "tags": ["kine"]
+        }
+      ]
+    },
+    "templating": {
+      "list": []
+    }
+  }
+}

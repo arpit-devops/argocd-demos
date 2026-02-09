@@ -1,0 +1,278 @@
+{
+  "dashboard": {
+    "title": "Kamaji TCP - Datastore Latency & Performance",
+    "tags": ["kamaji", "datastore", "etcd", "latency"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Server → Datastore Roundtrip Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, resource, le))",
+            "legendFormat": "{{operation}}/{{resource}} - p95"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Roundtrip Time",
+            "logBase": 1
+          }
+        ],
+        "tooltip": {
+          "shared": true,
+          "sort": 2,
+          "value_type": "individual"
+        }
+      },
+      {
+        "id": 2,
+        "title": "API Server → Datastore Roundtrip Latency (p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, resource, le))",
+            "legendFormat": "{{operation}}/{{resource}} - p99"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Roundtrip Time",
+            "logBase": 1
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.2], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ],
+          "name": "High Datastore Latency"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Etcd Operation Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(etcd_request_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, type, le))",
+            "legendFormat": "{{operation}}/{{type}} - p95"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 9, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Etcd Latency",
+            "logBase": 1
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Etcd Operation Latency (p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(etcd_request_duration_seconds_bucket{job=\"tenant3-apiserver\"}[5m])) by (operation, type, le))",
+            "legendFormat": "{{operation}}/{{type}} - p99"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 9, "w": 12, "h": 9},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Etcd Latency",
+            "logBase": 1
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Storage Operation Latency by Type - GET (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\",operation=\"get\"}[5m])) by (resource, le))",
+            "legendFormat": "GET/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 18, "w": 6, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Latency"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Storage Operation Latency by Type - LIST (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\",operation=\"list\"}[5m])) by (resource, le))",
+            "legendFormat": "LIST/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 6, "y": 18, "w": 6, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Latency"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Storage Operation Latency by Type - CREATE (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\",operation=\"create\"}[5m])) by (resource, le))",
+            "legendFormat": "CREATE/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 18, "w": 6, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Latency"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Storage Operation Latency by Type - UPDATE (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(apiserver_storage_operation_duration_seconds_bucket{job=\"tenant3-apiserver\",operation=\"update\"}[5m])) by (resource, le))",
+            "legendFormat": "UPDATE/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 18, "w": 6, "h": 8},
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Latency"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Etcd Request Rate by Operation",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(etcd_request_duration_seconds_count{job=\"tenant3-apiserver\"}[5m])) by (operation, type)",
+            "legendFormat": "{{operation}}/{{type}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 26, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Operations/sec"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Storage Operations Rate by Type",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(apiserver_storage_operation_duration_seconds_count{job=\"tenant3-apiserver\"}[5m])) by (operation, resource)",
+            "legendFormat": "{{operation}}/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 26, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Operations/sec"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Storage Operation Errors",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(apiserver_storage_operation_errors_total{job=\"tenant3-apiserver\"}[5m])) by (operation, resource)",
+            "legendFormat": "{{operation}}/{{resource}}"
+          }
+        ],
+        "gridPos": {"x": 0, "y": 34, "w": 12, "h": 8},
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Errors/sec"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"params": [0.1], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]}
+            }
+          ],
+          "name": "Storage Operation Errors"
+        }
+      },
+      {
+        "id": 12,
+        "title": "Average Datastore Roundtrip Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(rate(apiserver_storage_operation_duration_seconds_sum{job=\"tenant3-apiserver\"}[5m]) / rate(apiserver_storage_operation_duration_seconds_count{job=\"tenant3-apiserver\"}[5m]))",
+            "legendFormat": "Avg Roundtrip"
+          }
+        ],
+        "gridPos": {"x": 12, "y": 34, "w": 6, "h": 8},
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "unit": "s"
+        },
+        "thresholds": {
+          "mode": "absolute",
+          "steps": [
+            {"value": 0, "color": "green"},
+            {"value": 0.05, "color": "yellow"},
+            {"value": 0.1, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 13,
+        "title": "Total Storage Operations/sec",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(apiserver_storage_operation_duration_seconds_count{job=\"tenant3-apiserver\"}[5m]))",
+            "legendFormat": "Total Ops"
+          }
+        ],
+        "gridPos": {"x": 18, "y": 34, "w": 6, "h": 8},
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value",
+          "unit": "ops"
+        }
+      }
+    ],
+    "refresh": "10s",
+    "time": {"from": "now-1h", "to": "now"}
+  }
+}

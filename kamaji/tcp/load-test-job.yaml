@@ -34,49 +34,36 @@ spec:
               END_TIME=$(($(date +%s) + 600))
               
               while [ $(date +%s) -lt $END_TIME ]; do
-                # Parallel background requests for maximum load
-                for i in {1..50}; do
-                  (
-                    kubectl --server=https://${API_SERVER} \
-                      --insecure-skip-tls-verify \
-                      --token=$TOKEN \
-                      get nodes --request-timeout=5s 2>/dev/null || true
-                  ) &
+                # Parallel background requests - controlled batches to avoid OOM
+                for batch in {1..10}; do
+                  for i in {1..10}; do
+                    (
+                      kubectl --server=https://${API_SERVER} \
+                        --insecure-skip-tls-verify \
+                        --token=$TOKEN \
+                        get nodes --request-timeout=3s 2>/dev/null || true
+                    ) &
+                    
+                    (
+                      kubectl --server=https://${API_SERVER} \
+                        --insecure-skip-tls-verify \
+                        --token=$TOKEN \
+                        get pods -A --request-timeout=3s 2>/dev/null || true
+                    ) &
+                    
+                    (
+                      kubectl --server=https://${API_SERVER} \
+                        --insecure-skip-tls-verify \
+                        --token=$TOKEN \
+                        get services -A --request-timeout=3s 2>/dev/null || true
+                    ) &
+                  done
                   
-                  (
-                    kubectl --server=https://${API_SERVER} \
-                      --insecure-skip-tls-verify \
-                      --token=$TOKEN \
-                      get pods -A --request-timeout=5s 2>/dev/null || true
-                  ) &
-                  
-                  (
-                    kubectl --server=https://${API_SERVER} \
-                      --insecure-skip-tls-verify \
-                      --token=$TOKEN \
-                      get services -A --request-timeout=5s 2>/dev/null || true
-                  ) &
-                  
-                  (
-                    kubectl --server=https://${API_SERVER} \
-                      --insecure-skip-tls-verify \
-                      --token=$TOKEN \
-                      get deployments -A --request-timeout=5s 2>/dev/null || true
-                  ) &
-                  
-                  (
-                    kubectl --server=https://${API_SERVER} \
-                      --insecure-skip-tls-verify \
-                      --token=$TOKEN \
-                      get configmaps -A --request-timeout=5s 2>/dev/null || true
-                  ) &
+                  # Wait for this batch to complete before starting next
+                  wait
                 done
                 
-                # Wait for batch to complete
-                wait
-                
-                echo "[$HOSTNAME] Load test running... $(date) - Batch completed"
-                sleep 1
+                echo "[$HOSTNAME] Load test running... $(date) - 10 batches completed"
               done
               
               echo "[$HOSTNAME] Load test completed!"
