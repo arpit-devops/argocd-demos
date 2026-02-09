@@ -5,8 +5,8 @@ metadata:
   namespace: tenant-clusters
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
+    apiVersion: kamaji.clastix.io/v1alpha1
+    kind: TenantControlPlane
     name: tenant3
   minReplicas: 3
   maxReplicas: 5
@@ -16,7 +16,7 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 60
+          averageUtilization: 30
     - type: Resource
       resource:
         name: memory

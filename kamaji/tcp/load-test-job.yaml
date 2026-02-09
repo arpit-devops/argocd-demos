@@ -4,8 +4,8 @@ metadata:
   name: apiserver-load-test
   namespace: tenant-clusters
 spec:
-  parallelism: 5
-  completions: 5
+  parallelism: 8
+  completions: 8
   backoffLimit: 0
   template:
     metadata:
@@ -22,7 +22,7 @@ spec:
             - |
               set -e
               
-              echo "Starting CONTROLLED API server load test..."
+              echo "Starting BALANCED API server load test..."
               echo "Target: tenant3 API server"
               echo "Pod: $HOSTNAME"
               
@@ -30,13 +30,13 @@ spec:
               API_SERVER="tenant3.tenant-clusters.svc.cluster.local:6443"
               TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
               
-              # Generate controlled load for 10 minutes
+              # Generate balanced sustained load for 10 minutes
               END_TIME=$(($(date +%s) + 600))
               COUNTER=0
               
               while [ $(date +%s) -lt $END_TIME ]; do
-                # Sequential requests with small parallel batches
-                for i in {1..5}; do
+                # Controlled parallel batches - 6 requests at a time
+                for i in {1..6}; do
                   kubectl --server=https://${API_SERVER} \
                     --insecure-skip-tls-verify \
                     --token=$TOKEN \
@@ -61,8 +61,8 @@ spec:
                   echo "[$HOSTNAME] Load test running... $(date) - Completed $COUNTER batches"
                 fi
                 
-                # Small delay to prevent overwhelming
-                sleep 0.5
+                # Balanced delay - not too fast, not too slow
+                sleep 0.3
               done
               
               echo "[$HOSTNAME] Load test completed! Total batches: $COUNTER"
