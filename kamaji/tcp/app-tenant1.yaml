@@ -18,3 +18,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: kamaji.clastix.io
+      kind: TenantControlPlane
+      jsonPointers:
+        - /spec/controlPlane/deployment/replicas
